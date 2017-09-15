@@ -1,61 +1,70 @@
 class FSM {
-    /**
-     * Creates new FSM instance.
-     * @param config
-     */
-    constructor(config) {}
 
-    /**
-     * Returns active state.
-     * @returns {String}
-     */
-    getState() {}
+    constructor(config) {
+      this.state = config.initial;
+      this.states = config.states;
+      this.initial = config.initial;
+      this.stateHistory = [this.initial];
+      this.stateCache = [];
+    }
 
-    /**
-     * Goes to specified state.
-     * @param state
-     */
-    changeState(state) {}
+    getState() {
+      return this.state;
+    }
 
-    /**
-     * Changes state according to event transition rules.
-     * @param event
-     */
-    trigger(event) {}
+    changeState(state) {
+      if (this.states[state]) {
+        this.stateCache = [];
+        this.stateHistory.push(state);
+        this.state = state;
+      } else throw new Error;
+    }
 
-    /**
-     * Resets FSM state to initial.
-     */
-    reset() {}
+    trigger(event) {
+      if (this.getStates(event).includes(this.state)) {
+        this.stateCache = [];
+        this.state = this.states[this.state].transitions[event];
+        this.stateHistory.push(this.state);
+      } else throw new Error;
+    }
 
-    /**
-     * Returns an array of states for which there are specified event transition rules.
-     * Returns all states if argument is undefined.
-     * @param event
-     * @returns {Array}
-     */
-    getStates(event) {}
+    reset() {
+      this.state = this.initial;
+    }
 
-    /**
-     * Goes back to previous state.
-     * Returns false if undo is not available.
-     * @returns {Boolean}
-     */
-    undo() {}
+    getStates(event) {
+      let res = [];
+      if (event) {
+        for(let i in this.states) {
+          if (this.states[i].transitions[event]) res.push(i);
+        }
+      } else {
+        for(let i in this.states) res.push(i);
+      }
+      return res;
+    }
 
-    /**
-     * Goes redo to state.
-     * Returns false if redo is not available.
-     * @returns {Boolean}
-     */
-    redo() {}
+    undo() {
+      if (this.stateHistory.length === 1) return false;
+      else {
+        this.stateCache.push(this.stateHistory.pop());
+        this.state = this.stateHistory[this.stateHistory.length - 1];
+        return true;
+      }
+    }
 
-    /**
-     * Clears transition history
-     */
-    clearHistory() {}
+    redo() {
+      if (this.stateCache.length === 0) return false;
+      else {
+        this.stateHistory.push(this.stateCache.pop());
+        this.state = this.stateHistory[this.stateHistory.length - 1];
+        return true;
+      }
+    }
+
+    clearHistory() {
+      this.stateHistory = [this.initial];
+    }
 }
 
 module.exports = FSM;
-
-/** @Created by Uladzimir Halushka **/
